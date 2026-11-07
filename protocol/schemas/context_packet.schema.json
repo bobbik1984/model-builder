@@ -1,0 +1,156 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://model-builder.local/schemas/context_packet.schema.json",
+  "title": "ContextPacket",
+  "description": "Everything the agent needs to understand what the user is pointing at. Units: meters, right-handed Z-up world coordinates.",
+  "type": "object",
+  "required": ["protocol_version", "packet_id", "created_at", "host", "camera", "pins", "scope"],
+  "properties": {
+    "protocol_version": { "const": "0.1" },
+    "packet_id": { "type": "string" },
+    "created_at": { "type": "string", "format": "date-time" },
+    "host": {
+      "type": "object",
+      "required": ["app", "version"],
+      "properties": {
+        "app": { "enum": ["sketchup", "rhino"] },
+        "version": { "type": "string" },
+        "model_units": { "type": "string", "description": "Units shown to the user, for display only. Packet values are always meters." }
+      }
+    },
+    "model": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "path": { "type": "string" },
+        "bounds": { "$ref": "#/$defs/bbox" }
+      }
+    },
+    "message": { "type": "string", "description": "The user's instruction text." },
+    "lod": { "enum": ["massing", "schematic", "detail"] },
+    "camera": { "$ref": "#/$defs/camera" },
+    "views": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["kind", "path"],
+        "properties": {
+          "kind": { "enum": ["viewport", "annotated", "section", "render"] },
+          "path": { "type": "string", "description": "Relative to the session folder." },
+          "camera": { "$ref": "#/$defs/camera" }
+        }
+      }
+    },
+    "scope": {
+      "type": "object",
+      "required": ["mode"],
+      "properties": {
+        "mode": { "enum": ["selection", "bbox", "none"] },
+        "refs": { "type": "array", "items": { "$ref": "#/$defs/ref" } },
+        "bbox": { "$ref": "#/$defs/bbox" }
+      }
+    },
+    "selection": { "type": "array", "items": { "$ref": "#/$defs/entity_summary" } },
+    "pins": { "type": "array", "items": { "$ref": "#/$defs/pin" } },
+    "strokes": { "type": "array", "items": { "$ref": "#/$defs/stroke" } },
+    "references": { "type": "array", "items": { "$ref": "#/$defs/reference" } }
+  },
+  "$defs": {
+    "vec3": { "type": "array", "items": { "type": "number" }, "minItems": 3, "maxItems": 3 },
+    "vec2": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 },
+    "ref": { "type": "string", "pattern": "^(su|rh):.+$" },
+    "bbox": {
+      "type": "object",
+      "required": ["min", "max"],
+      "properties": { "min": { "$ref": "#/$defs/vec3" }, "max": { "$ref": "#/$defs/vec3" } }
+    },
+    "camera": {
+      "type": "object",
+      "required": ["eye", "target", "up", "perspective"],
+      "properties": {
+        "eye": { "$ref": "#/$defs/vec3" },
+        "target": { "$ref": "#/$defs/vec3" },
+        "up": { "$ref": "#/$defs/vec3" },
+        "perspective": { "type": "boolean" },
+        "fov_deg": { "type": "number" },
+        "ortho_height_m": { "type": "number" },
+        "viewport_px": { "$ref": "#/$defs/vec2" }
+      }
+    },
+    "entity_summary": {
+      "type": "object",
+      "required": ["ref", "kind"],
+      "properties": {
+        "ref": { "$ref": "#/$defs/ref" },
+        "path": { "type": "array", "items": { "$ref": "#/$defs/ref" } },
+        "kind": { "enum": ["face", "edge", "group", "component", "curve", "surface", "brep", "mesh", "other"] },
+        "name": { "type": "string" },
+        "definition": { "type": "string" },
+        "tags": { "type": "object", "additionalProperties": { "type": "string" } },
+        "bounds": { "$ref": "#/$defs/bbox" }
+      }
+    },
+    "pin": {
+      "type": "object",
+      "required": ["id", "point"],
+      "properties": {
+        "id": { "type": "string" },
+        "label": { "type": "string" },
+        "point": { "$ref": "#/$defs/vec3" },
+        "normal": { "$ref": "#/$defs/vec3" },
+        "screen_px": { "$ref": "#/$defs/vec2" },
+        "entity": { "$ref": "#/$defs/entity_summary" },
+        "note": { "type": "string" }
+      }
+    },
+    "stroke": {
+      "type": "object",
+      "required": ["id", "kind", "screen_px"],
+      "properties": {
+        "id": { "type": "string" },
+        "kind": { "enum": ["circle", "arrow", "line", "freehand"] },
+        "screen_px": { "type": "array", "items": { "$ref": "#/$defs/vec2" } },
+        "world": { "type": "array", "items": { "oneOf": [{ "$ref": "#/$defs/vec3" }, { "type": "null" }] } },
+        "hit_refs": { "type": "array", "items": { "$ref": "#/$defs/ref" } },
+        "note": { "type": "string" }
+      }
+    },
+    "reference": {
+      "type": "object",
+      "required": ["id", "kind", "file", "registration"],
+      "properties": {
+        "id": { "type": "string" },
+        "kind": { "enum": ["cad", "sketch", "photo", "render", "section"] },
+        "file": { "type": "string" },
+        "source": { "type": "string" },
+        "registration": {
+          "oneOf": [
+            {
+              "type": "object",
+              "required": ["type", "origin", "u_axis", "v_axis", "meters_per_px"],
+              "properties": {
+                "type": { "const": "plane" },
+                "origin": { "$ref": "#/$defs/vec3" },
+                "u_axis": { "$ref": "#/$defs/vec3" },
+                "v_axis": { "$ref": "#/$defs/vec3" },
+                "meters_per_px": { "type": "number" },
+                "anchor_px": { "type": "array", "items": { "$ref": "#/$defs/vec2" } }
+              }
+            },
+            {
+              "type": "object",
+              "required": ["type", "camera"],
+              "properties": { "type": { "const": "camera" }, "camera": { "$ref": "#/$defs/camera" } }
+            },
+            {
+              "type": "object",
+              "required": ["type"],
+              "properties": { "type": { "const": "none" } }
+            }
+          ]
+        },
+        "note": { "type": "string" }
+      }
+    }
+  }
+}
