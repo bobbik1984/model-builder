@@ -1,0 +1,129 @@
+{
+  "bounds": {
+    "min": [
+      3.215517,
+      0.726139,
+      0.14
+    ],
+    "max": [
+      23.013885,
+      20.397801,
+      1.108009
+    ]
+  },
+  "groups": [
+    [
+      "Fire-rated solid roof panels 30mm",
+      106
+    ],
+    [
+      "Aluminium ceiling panels (2 tones)",
+      280
+    ],
+    [
+      "Beams (100x200 RHS, aluminium wrapped)",
+      40
+    ],
+    [
+      "Edge curb",
+      360
+    ],
+    [
+      "Perimeter gutter / flashing",
+      160
+    ],
+    [
+      "Sprinkler heads",
+      1360
+    ]
+  ],
+  "above_hits": 21,
+  "above_min_z": 1.37,
+  "above_samples": [
+    {
+      "at": [
+        22.188953,
+        19.578149
+      ],
+      "hit_z": 1.37,
+      "path": [
+        "Group#23",
+        "Group#368",
+        "Group#344",
+        "Group#238",
+        "Face"
+      ]
+    },
+    {
+      "at": [
+        22.188953,
+        16.299538
+      ],
+      "hit_z": 1.37,
+      "path": [
+        "Group#23",
+        "Group#368",
+        "Group#344",
+        "Group#238",
+        "Face"
+      ]
+    },
+    {
+      "at": [
+        20.539089,
+        19.578149
+      ],
+      "hit_z": 1.37,
+      "path": [
+        "Group#23",
+        "Group#368",
+        "Group#344",
+        "Group#238",
+        "Face"
+      ]
+    },
+    {
+      "at": [
+        20.539089,
+        17.938843
+      ],
+      "hit_z": 1.37,
+      "path": [
+        "Group#23",
+        "Group#368",
+        "Group#344",
+        "Group#238",
+        "Face"
+      ]
+    },
+    {
+      "at": [
+        22.188953,
+        17.938843
+      ],
+      "hit_z": 1.37,
+      "path": [
+        "Group#23",
+        "Group#368",
+        "Group#344",
+        "Group#238",
+        "Face"
+      ]
+    },
+    {
+      "at": [
+        7.340177,
+        4.824402
+      ],
+      "hit_z": 7.469945,
+      "path": [
+        "Group#23",
+        "组#5",
+        "组#85",
+        "Face"
+      ]
+    }
+  ],
+  "clearance_m": 0.262,
+  "max_nonplanarity_mm": 0.0
+}

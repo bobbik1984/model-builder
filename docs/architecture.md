@@ -43,7 +43,7 @@ The bridge is the stable core:
 - Stores session artifacts (packets, screenshots) under `.runtime/`, which is gitignored
 
 ### Agent
-Claude, connected through MCP. The bridge has no model-specific code. The host panel can also send the user's text message, so a turn can start from inside SketchUp. See the open question in `roadmap.md`.
+Any agent, connected per `decisions/0003-agent-connection.md`: an agent program the bridge launches (Claude Code, Codex, Antigravity, custom command) or the bridge's own loop on a direct API key (env vars). Claude, connected through MCP, is the first. The bridge has no model-specific code. The host panel can also send the user's text message, so a turn can start from inside SketchUp. See the open question in `roadmap.md`.
 
 ## Data flow: one interaction
 

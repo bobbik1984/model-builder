@@ -26,7 +26,8 @@ Rhino plugin (Python) ─────┘
 | `bridge/` | Python MCP server that owns protocol, ops and proposal state |
 | `hosts/sketchup/` | SketchUp extension (Ruby) |
 | `hosts/rhino/` | Rhino plugin and Grasshopper components (later) |
-| `samples/` | Small test models and reference images |
+| `samples/` | Test models, references and agent results (Git LFS; see `samples/README.md`) |
+| `tools/` | Dev loader installer, packet checker, .rbz packager |
 
 ## Start here
 
@@ -39,4 +40,12 @@ Rhino plugin (Python) ─────┘
 
 ## Status
 
-Pre-alpha. Only the docs and folder skeleton exist. Next step: **M1, the SketchUp pin + context packet spike** (see roadmap).
+Pre-alpha, SketchUp extension **0.5.0**:
+- **AI Build:** mark a place in the model, describe it, attach references, and send it to an agent on your PC (Claude Code, Antigravity, any agent) or a model API (DeepSeek, Anthropic, OpenAI-compatible).
+- **Plan, then build:** the agent plans read-only, you approve, it builds in your open model, and you Accept or Reject.
+- **Tested:** automated tests inside SketchUp 2024 pass, including real Claude Code and DeepSeek builds. A manual UI test of 0.5 is pending.
+
+See [docs/handover.md](docs/handover.md) for the exact state and how to launch, and [docs/studies/](docs/studies/) for end-to-end studies.
+
+- Agents **developing** this repo: start at [AGENTS.md](AGENTS.md).
+- Agents **using** the plugin: start at [docs/agent-guide.md](docs/agent-guide.md).

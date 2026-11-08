@@ -4,152 +4,737 @@
   "title": "ContextPacket",
   "description": "Everything the agent needs to understand what the user is pointing at. Units: meters, right-handed Z-up world coordinates.",
   "type": "object",
-  "required": ["protocol_version", "packet_id", "created_at", "host", "camera", "pins", "scope"],
+  "required": [
+    "protocol_version",
+    "packet_id",
+    "created_at",
+    "host",
+    "camera",
+    "pins",
+    "scope"
+  ],
   "properties": {
-    "protocol_version": { "const": "0.1" },
-    "packet_id": { "type": "string" },
-    "created_at": { "type": "string", "format": "date-time" },
+    "protocol_version": {
+      "const": "0.4"
+    },
+    "packet_id": {
+      "type": "string"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
     "host": {
       "type": "object",
-      "required": ["app", "version"],
+      "required": [
+        "app",
+        "version"
+      ],
       "properties": {
-        "app": { "enum": ["sketchup", "rhino"] },
-        "version": { "type": "string" },
-        "model_units": { "type": "string", "description": "Units shown to the user, for display only. Packet values are always meters." }
+        "app": {
+          "enum": [
+            "sketchup",
+            "rhino"
+          ]
+        },
+        "version": {
+          "type": "string"
+        },
+        "model_units": {
+          "type": "string",
+          "description": "Units shown to the user, for display only. Packet values are always meters."
+        }
       }
     },
     "model": {
       "type": "object",
       "properties": {
-        "name": { "type": "string" },
-        "path": { "type": "string" },
-        "bounds": { "$ref": "#/$defs/bbox" }
+        "name": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "bounds": {
+          "$ref": "#/$defs/bbox"
+        }
       }
     },
-    "message": { "type": "string", "description": "The user's instruction text." },
-    "lod": { "enum": ["massing", "schematic", "detail"] },
-    "camera": { "$ref": "#/$defs/camera" },
+    "message": {
+      "type": "string",
+      "description": "The user's instruction / task text for the agent."
+    },
+    "lod": {
+      "enum": [
+        "massing",
+        "schematic",
+        "detail"
+      ]
+    },
+    "camera": {
+      "$ref": "#/$defs/camera"
+    },
     "views": {
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["kind", "path"],
+        "required": [
+          "kind",
+          "path"
+        ],
         "properties": {
-          "kind": { "enum": ["viewport", "annotated", "section", "render"] },
-          "path": { "type": "string", "description": "Relative to the session folder." },
-          "camera": { "$ref": "#/$defs/camera" }
+          "kind": {
+            "enum": [
+              "viewport",
+              "annotated",
+              "section",
+              "render"
+            ]
+          },
+          "path": {
+            "type": "string",
+            "description": "Relative to the session folder."
+          },
+          "camera": {
+            "$ref": "#/$defs/camera"
+          }
         }
       }
     },
     "scope": {
       "type": "object",
-      "required": ["mode"],
+      "required": [
+        "mode"
+      ],
       "properties": {
-        "mode": { "enum": ["selection", "bbox", "none"] },
-        "refs": { "type": "array", "items": { "$ref": "#/$defs/ref" } },
-        "bbox": { "$ref": "#/$defs/bbox" }
+        "mode": {
+          "enum": [
+            "selection",
+            "bbox",
+            "none"
+          ]
+        },
+        "refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ref"
+          }
+        },
+        "bbox": {
+          "$ref": "#/$defs/bbox"
+        }
       }
     },
-    "selection": { "type": "array", "items": { "$ref": "#/$defs/entity_summary" } },
-    "pins": { "type": "array", "items": { "$ref": "#/$defs/pin" } },
-    "strokes": { "type": "array", "items": { "$ref": "#/$defs/stroke" } },
-    "references": { "type": "array", "items": { "$ref": "#/$defs/reference" } }
+    "selection": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/entity_summary"
+      }
+    },
+    "pins": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/pin"
+      }
+    },
+    "strokes": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/stroke"
+      }
+    },
+    "references": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/reference"
+      }
+    },
+    "session_id": {
+      "type": "string",
+      "description": "Host session that produced this packet. Image paths in `views` are relative to that session's folder."
+    },
+    "project_notes": {
+      "type": "string",
+      "description": "Absolute path of \"<model>.project.md\" next to the .skp, if it exists: shared project notes every agent reads first and updates."
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Problems the plugin found at export (marks hidden or out of frame, outlines passing through geometry, outlines on curved surfaces, unconfirmed CAD placement, failed previews)."
+    },
+    "cad_imports": {
+      "type": "array",
+      "description": "Top-level imported CAD (DWG/DXF) components and whether the user confirmed they line up with the model.",
+      "items": {
+        "type": "object",
+        "required": [
+          "ref",
+          "name",
+          "registration"
+        ],
+        "properties": {
+          "ref": {
+            "$ref": "#/$defs/ref"
+          },
+          "name": {
+            "type": "string"
+          },
+          "definition": {
+            "type": "string"
+          },
+          "origin": {
+            "$ref": "#/$defs/vec3"
+          },
+          "rotation_z_deg": {
+            "type": "number"
+          },
+          "registration": {
+            "type": "string",
+            "description": "\"unconfirmed\", or the user's confirmation note + timestamp"
+          },
+          "bounds": {
+            "$ref": "#/$defs/bbox"
+          }
+        }
+      }
+    }
   },
   "$defs": {
-    "vec3": { "type": "array", "items": { "type": "number" }, "minItems": 3, "maxItems": 3 },
-    "vec2": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 },
-    "ref": { "type": "string", "pattern": "^(su|rh):.+$" },
+    "vec3": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      },
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "vec2": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      },
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "ref": {
+      "type": "string",
+      "pattern": "^(su|rh):.+$"
+    },
     "bbox": {
       "type": "object",
-      "required": ["min", "max"],
-      "properties": { "min": { "$ref": "#/$defs/vec3" }, "max": { "$ref": "#/$defs/vec3" } }
+      "required": [
+        "min",
+        "max"
+      ],
+      "properties": {
+        "min": {
+          "$ref": "#/$defs/vec3"
+        },
+        "max": {
+          "$ref": "#/$defs/vec3"
+        }
+      }
     },
     "camera": {
       "type": "object",
-      "required": ["eye", "target", "up", "perspective"],
+      "required": [
+        "eye",
+        "target",
+        "up",
+        "perspective"
+      ],
       "properties": {
-        "eye": { "$ref": "#/$defs/vec3" },
-        "target": { "$ref": "#/$defs/vec3" },
-        "up": { "$ref": "#/$defs/vec3" },
-        "perspective": { "type": "boolean" },
-        "fov_deg": { "type": "number" },
-        "ortho_height_m": { "type": "number" },
-        "viewport_px": { "$ref": "#/$defs/vec2" }
+        "eye": {
+          "$ref": "#/$defs/vec3"
+        },
+        "target": {
+          "$ref": "#/$defs/vec3"
+        },
+        "up": {
+          "$ref": "#/$defs/vec3"
+        },
+        "perspective": {
+          "type": "boolean"
+        },
+        "fov_deg": {
+          "type": "number",
+          "description": "Field of view in degrees (perspective only). See fov_axis."
+        },
+        "ortho_height_m": {
+          "type": "number",
+          "description": "Visible height in meters (parallel projection only)."
+        },
+        "viewport_px": {
+          "$ref": "#/$defs/vec2",
+          "description": "Viewport size in pixels. Exported viewport images have exactly this size, so screen_px values index into them."
+        },
+        "fov_axis": {
+          "enum": [
+            "vertical",
+            "horizontal"
+          ],
+          "description": "Which viewport dimension fov_deg spans."
+        }
       }
     },
     "entity_summary": {
       "type": "object",
-      "required": ["ref", "kind"],
+      "required": [
+        "ref",
+        "kind"
+      ],
       "properties": {
-        "ref": { "$ref": "#/$defs/ref" },
-        "path": { "type": "array", "items": { "$ref": "#/$defs/ref" } },
-        "kind": { "enum": ["face", "edge", "group", "component", "curve", "surface", "brep", "mesh", "other"] },
-        "name": { "type": "string" },
-        "definition": { "type": "string" },
-        "tags": { "type": "object", "additionalProperties": { "type": "string" } },
-        "bounds": { "$ref": "#/$defs/bbox" }
+        "ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "path": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ref"
+          }
+        },
+        "kind": {
+          "enum": [
+            "face",
+            "edge",
+            "group",
+            "component",
+            "curve",
+            "surface",
+            "brep",
+            "mesh",
+            "other"
+          ]
+        },
+        "name": {
+          "type": "string"
+        },
+        "definition": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "bounds": {
+          "$ref": "#/$defs/bbox"
+        },
+        "layer": {
+          "type": "string",
+          "description": "SketchUp tag (layer) / Rhino layer name."
+        },
+        "material": {
+          "type": "string",
+          "description": "Material name applied to this entity (front side for faces)."
+        },
+        "contents": {
+          "type": "object",
+          "description": "For instances: what is directly inside (helps identify unnamed groups).",
+          "properties": {
+            "faces": {
+              "type": "integer"
+            },
+            "edges": {
+              "type": "integer"
+            },
+            "instances": {
+              "type": "integer"
+            },
+            "tags": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "count": {
+                    "type": "integer"
+                  }
+                }
+              }
+            },
+            "materials": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "count": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "pin": {
       "type": "object",
-      "required": ["id", "point"],
+      "required": [
+        "id",
+        "point"
+      ],
       "properties": {
-        "id": { "type": "string" },
-        "label": { "type": "string" },
-        "point": { "$ref": "#/$defs/vec3" },
-        "normal": { "$ref": "#/$defs/vec3" },
-        "screen_px": { "$ref": "#/$defs/vec2" },
-        "entity": { "$ref": "#/$defs/entity_summary" },
-        "note": { "type": "string" }
+        "id": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "point": {
+          "$ref": "#/$defs/vec3",
+          "description": "World position of the pin, meters."
+        },
+        "normal": {
+          "$ref": "#/$defs/vec3",
+          "description": "World-space unit normal of the hit face (its front side). Absent if the pin is not on a face."
+        },
+        "front_facing": {
+          "type": "boolean",
+          "description": "True if the camera at export time sees the front side of the face."
+        },
+        "snap": {
+          "enum": [
+            "point",
+            "edge",
+            "face",
+            "none"
+          ],
+          "description": "How the point was found: snapped to a point (endpoint, midpoint, intersection), to an edge, on a face (exact ray hit), or none."
+        },
+        "screen_px": {
+          "$ref": "#/$defs/vec2",
+          "description": "Pixel position of the pin in the exported viewport image (origin top-left), computed with the export camera."
+        },
+        "in_frame": {
+          "type": "boolean",
+          "description": "True if the pin is in front of the camera and inside the viewport. Occlusion is not checked."
+        },
+        "entity": {
+          "$ref": "#/$defs/entity_summary"
+        },
+        "instance": {
+          "$ref": "#/$defs/entity_summary",
+          "description": "The innermost group/component instance containing the hit entity. Absent at model root."
+        },
+        "path_detail": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/path_element"
+          },
+          "description": "entity.path with kinds and names, root first, ending with the hit entity."
+        },
+        "note": {
+          "type": "string"
+        },
+        "visible": {
+          "type": "boolean",
+          "description": "False if the pin is hidden behind other geometry from the camera (in_frame does not check occlusion)."
+        }
       }
     },
     "stroke": {
       "type": "object",
-      "required": ["id", "kind", "screen_px"],
+      "required": [
+        "id",
+        "kind",
+        "screen_px"
+      ],
       "properties": {
-        "id": { "type": "string" },
-        "kind": { "enum": ["circle", "arrow", "line", "freehand"] },
-        "screen_px": { "type": "array", "items": { "$ref": "#/$defs/vec2" } },
-        "world": { "type": "array", "items": { "oneOf": [{ "$ref": "#/$defs/vec3" }, { "type": "null" }] } },
-        "hit_refs": { "type": "array", "items": { "$ref": "#/$defs/ref" } },
-        "note": { "type": "string" }
-      }
+        "id": {
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "circle",
+            "arrow",
+            "line",
+            "freehand",
+            "polygon"
+          ],
+          "description": "polygon = closed outline (last point connects to first)."
+        },
+        "screen_px": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/vec2"
+          },
+          "description": "Pixel positions in the exported images (export camera)."
+        },
+        "world": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/vec3"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "description": "World points (meters); null where nothing could be resolved."
+        },
+        "point_snaps": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "point",
+              "edge",
+              "face",
+              "plane",
+              "none"
+            ]
+          },
+          "description": "Per point: snapped to a point/edge, on a face, or projected onto a horizontal plane (plane)."
+        },
+        "in_frame": {
+          "type": "boolean",
+          "description": "All points are in front of the camera and inside the frame."
+        },
+        "hit_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ref"
+          },
+          "description": "Distinct innermost instances (or root faces) the points landed on."
+        },
+        "hit_paths": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/ref"
+            }
+          },
+          "description": "Full paths for hit_refs (same order); needed because refs inside shared definitions repeat."
+        },
+        "hit_names": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Readable breadcrumb for each hit path (names, definitions, tags)."
+        },
+        "metrics": {
+          "type": "object",
+          "description": "Derived from world points. Area/normal only for polygons.",
+          "properties": {
+            "length_m": {
+              "type": "number",
+              "description": "Polyline length (perimeter for polygons)."
+            },
+            "area_m2": {
+              "type": "number"
+            },
+            "centroid": {
+              "$ref": "#/$defs/vec3"
+            },
+            "normal": {
+              "$ref": "#/$defs/vec3",
+              "description": "Unit normal of the best-fit plane (polygons)."
+            },
+            "bounds": {
+              "$ref": "#/$defs/bbox"
+            },
+            "normal_spread_deg": {
+              "type": "number",
+              "description": "Largest angle between a point normal and their mean; > 15 means the outline lies on a curved or folded surface."
+            }
+          }
+        },
+        "note": {
+          "type": "string"
+        },
+        "point_normals": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/vec3"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "description": "World unit normal of the face under each point (null where the point is not on a face)."
+        },
+        "points_visible": {
+          "type": "array",
+          "items": {
+            "type": "boolean"
+          },
+          "description": "Per point: false if hidden behind geometry from the camera."
+        }
+      },
+      "description": "Markup drawn by the user: a polyline or closed outline with world points on (or projected onto) the model."
     },
     "reference": {
       "type": "object",
-      "required": ["id", "kind", "file", "registration"],
+      "required": [
+        "id",
+        "kind"
+      ],
       "properties": {
-        "id": { "type": "string" },
-        "kind": { "enum": ["cad", "sketch", "photo", "render", "section"] },
-        "file": { "type": "string" },
-        "source": { "type": "string" },
+        "id": {
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "cad",
+            "sketch",
+            "photo",
+            "render",
+            "section",
+            "pdf",
+            "cad_in_model"
+          ],
+          "description": "cad_in_model = something already in the model (model_ref), e.g. an imported DWG; no file."
+        },
+        "file": {
+          "type": "string",
+          "description": "Copy of the image, relative to the session folder."
+        },
+        "source": {
+          "type": "string",
+          "description": "Where the user attached it from (original path, page, etc.)."
+        },
         "registration": {
           "oneOf": [
             {
               "type": "object",
-              "required": ["type", "origin", "u_axis", "v_axis", "meters_per_px"],
+              "required": [
+                "type",
+                "origin",
+                "u_axis",
+                "v_axis",
+                "meters_per_px"
+              ],
               "properties": {
-                "type": { "const": "plane" },
-                "origin": { "$ref": "#/$defs/vec3" },
-                "u_axis": { "$ref": "#/$defs/vec3" },
-                "v_axis": { "$ref": "#/$defs/vec3" },
-                "meters_per_px": { "type": "number" },
-                "anchor_px": { "type": "array", "items": { "$ref": "#/$defs/vec2" } }
+                "type": {
+                  "const": "plane"
+                },
+                "origin": {
+                  "$ref": "#/$defs/vec3"
+                },
+                "u_axis": {
+                  "$ref": "#/$defs/vec3"
+                },
+                "v_axis": {
+                  "$ref": "#/$defs/vec3"
+                },
+                "meters_per_px": {
+                  "type": "number"
+                },
+                "anchor_px": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/vec2"
+                  }
+                }
               }
             },
             {
               "type": "object",
-              "required": ["type", "camera"],
-              "properties": { "type": { "const": "camera" }, "camera": { "$ref": "#/$defs/camera" } }
+              "required": [
+                "type",
+                "camera"
+              ],
+              "properties": {
+                "type": {
+                  "const": "camera"
+                },
+                "camera": {
+                  "$ref": "#/$defs/camera"
+                }
+              }
             },
             {
               "type": "object",
-              "required": ["type"],
-              "properties": { "type": { "const": "none" } }
+              "required": [
+                "type"
+              ],
+              "properties": {
+                "type": {
+                  "const": "none"
+                }
+              }
             }
           ]
         },
-        "note": { "type": "string" }
+        "note": {
+          "type": "string"
+        },
+        "preview": {
+          "type": "string",
+          "description": "Downscaled PNG (longest side 1600 px) for large images, relative to the session folder."
+        },
+        "size_px": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          },
+          "minItems": 2,
+          "maxItems": 2,
+          "description": "Original image size."
+        },
+        "model_ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "path_element": {
+      "type": "object",
+      "required": [
+        "ref",
+        "kind"
+      ],
+      "description": "One step of an entity path, with human-readable names.",
+      "properties": {
+        "ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "kind": {
+          "enum": [
+            "face",
+            "edge",
+            "group",
+            "component",
+            "curve",
+            "surface",
+            "brep",
+            "mesh",
+            "other"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "description": "Instance name, if the user gave one."
+        },
+        "definition": {
+          "type": "string",
+          "description": "Component definition name (components only)."
+        },
+        "layer": {
+          "type": "string",
+          "description": "SketchUp tag (layer) / Rhino layer name."
+        },
+        "material": {
+          "type": "string",
+          "description": "Material name applied to this entity (front side for faces)."
+        }
       }
     }
   }

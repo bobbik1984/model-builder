@@ -1,0 +1,36 @@
+{
+  "root_pid": 1842253,
+  "sprinklers": 40,
+  "outline_pts": 90,
+  "outline_area_m2": 224.43,
+  "z_ledge": 0.17,
+  "eave_z": 0.47,
+  "ridge_max_z": 1.108,
+  "ridge_len_m": 24.65,
+  "ridge_dir": [
+    0.722,
+    -0.6919
+  ],
+  "centroid": [
+    12.75,
+    10.03
+  ],
+  "stations": 13,
+  "panels": 114,
+  "beams": 40,
+  "params": {
+    "face_pid": 1656115,
+    "curb_h": 0.3,
+    "slope_deg": 6.0,
+    "spacing": 1.8,
+    "sweep_deg": 22.0,
+    "panel_t": 0.03,
+    "alu_gap": 0.06,
+    "beam_w": 0.15,
+    "beam_d": 0.26,
+    "ridge_w": 0.18,
+    "ridge_d": 0.3,
+    "sprinkler_step": 2.5,
+    "max_sag": 0.25
+  }
+}

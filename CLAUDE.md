@@ -1,5 +1,8 @@
 # CLAUDE.md: notes for AI agents working on this repo
 
+## Start here
+Read `AGENTS.md`, then **`docs/handover.md`** (current state, how to launch, what is tested). Update the handover before you finish.
+
 ## What this is
 This is an interaction layer between 3D modelers (SketchUp, later Rhino/Grasshopper) and an AI agent. Read `README.md` and `docs/architecture.md` first.
 
@@ -12,9 +15,10 @@ This is an interaction layer between 3D modelers (SketchUp, later Rhino/Grasshop
 - Keep host adapters thin, with translation only. Logic belongs in the bridge.
 
 ## Testing reality
-- Development happens on a **Windows** machine with SketchUp (and optionally Rhino 8). The Linux machine where this repo was started cannot run either host.
+- Development happens on a **Windows** machine with SketchUp 2024 (and optionally Rhino 8). The Linux machine where this repo was started cannot run either host.
 - The bridge (Python) can be tested anywhere, using `protocol/examples/` and a fake host.
-- Host code can only be verified inside the app. When you can't run it, say so, and ask the user for Ruby Console / Rhino output.
+- Host code can only be verified inside the app. On the Windows machine an agent can run the **unattended self-test** (`hosts/sketchup/dev/autorun_selftest.rb`, see handover) while SketchUp is closed. It covers capture math and export, not mouse/UI. For UI behavior, say so and ask the user to run the manual test in `docs/acceptance/`.
+- Keep the two statuses apart in docs and reports: "code reviewed" vs. "tested in SketchUp" (auto or manual, with a dated record in `docs/acceptance/`).
 
 ## Code conventions
 - Bridge: Python ≥ 3.11, managed with `uv`, formatted with `ruff`, tested with `pytest`.

@@ -8,3 +8,9 @@
 *.jpg binary
 *.pdf binary
 *.dwg binary
+samples/**/*.skp filter=lfs diff=lfs merge=lfs -text
+samples/**/*.dwg filter=lfs diff=lfs merge=lfs -text
+samples/**/*.png filter=lfs diff=lfs merge=lfs -text
+samples/**/*.PNG filter=lfs diff=lfs merge=lfs -text
+samples/**/*.jpg filter=lfs diff=lfs merge=lfs -text
+samples/**/*.jpeg filter=lfs diff=lfs merge=lfs -text

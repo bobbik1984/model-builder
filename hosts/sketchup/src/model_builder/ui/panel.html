@@ -1,0 +1,181 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>AI Build</title>
+<style>
+  :root { --bg:#f6f6f4; --card:#fff; --ink:#1f2328; --mute:#6b7280; --line:#e2e2de; --accent:#c8381e;
+          --ok:#1a7f37; --warn:#9a6700; --err:#b42318; --chip:#eef0f2; }
+  * { box-sizing:border-box; }
+  body { margin:0; font:13px/1.45 "Segoe UI", system-ui, sans-serif; background:var(--bg); color:var(--ink); }
+  .wrap { padding:10px 12px 16px; }
+  .top { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px; }
+  .top b { font-size:15px; } .top span { color:var(--mute); font-size:11px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:10px; margin-bottom:8px; }
+  .label { font-size:11px; letter-spacing:.04em; text-transform:uppercase; color:var(--mute); margin-bottom:6px; display:flex; justify-content:space-between; }
+  button { font:inherit; border:1px solid var(--line); background:#fff; border-radius:6px; padding:4px 10px; cursor:pointer; }
+  button:hover { border-color:#b9b9b4; } button.primary { background:var(--accent); border-color:var(--accent); color:#fff; font-weight:600; }
+  button.ok { background:var(--ok); border-color:var(--ok); color:#fff; font-weight:600; }
+  button:disabled { opacity:.5; cursor:default; } button.link { border:0; background:none; color:var(--mute); padding:0 4px; }
+  button.link:hover { color:var(--ink); }
+  .chips { display:flex; flex-wrap:wrap; gap:6px; }
+  .chip { display:inline-flex; align-items:center; gap:4px; border-radius:12px; padding:1px 4px 1px 9px; font-size:12px; background:var(--chip); max-width:100%; }
+  .chip.pin { background:#fde3df; color:#8e1f0c; } .chip.polygon, .chip.line { background:#feecd9; color:#8a4300; }
+  .chip.ref { background:#e3ecfb; color:#1f4fa0; } .chip .x { border:0; background:none; cursor:pointer; color:inherit; opacity:.6; padding:0 4px; }
+  .chip .x:hover { opacity:1; } .chip .t { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:220px; cursor:pointer; }
+  .hint { color:var(--mute); font-size:12px; }
+  textarea { width:100%; min-height:84px; font:inherit; border:1px solid var(--line); border-radius:6px; padding:7px; resize:vertical; }
+  select, input[type=text], input[type=password] { font:inherit; border:1px solid var(--line); border-radius:6px; padding:4px 6px; background:#fff; }
+  .row { display:flex; gap:6px; align-items:center; } .grow { flex:1; min-width:0; }
+  .sendrow { display:flex; gap:6px; align-items:center; margin-top:2px; } .sendrow select { flex:1; min-width:0; }
+  .sendrow .primary { padding:6px 14px; }
+  .form .f { display:flex; gap:6px; align-items:center; margin-top:6px; } .form label { width:70px; color:var(--mute); font-size:12px; }
+  .form input[type=text], .form input[type=password], .form select { flex:1; min-width:0; }
+  .note { font-size:12px; margin-top:6px; } .note.ok { color:var(--ok); } .note.bad { color:var(--err); } .note.warn { color:var(--warn); }
+  .status { display:flex; gap:8px; align-items:center; } .dot { width:9px; height:9px; border-radius:50%; background:#c9c9c4; flex:none; }
+  .dot.live { background:#e8a10a; animation:p 1.2s infinite; } .dot.wait { background:var(--accent); } .dot.done { background:var(--ok); }
+  @keyframes p { 50% { opacity:.35; } }
+  .step { color:var(--mute); font-size:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .md h1,.md h2,.md h3 { font-size:13px; margin:8px 0 2px; } .md ul { margin:2px 0; padding-left:18px; } .md p { margin:4px 0; }
+  .md code { background:var(--chip); padding:0 3px; border-radius:3px; font-size:12px; }
+  .doc { max-height:340px; overflow:auto; border-left:3px solid #e8780a; padding-left:9px; }
+  .doc.report { border-left-color:var(--ok); }
+  .actions { display:flex; gap:6px; margin-top:10px; flex-wrap:wrap; }
+  details { margin-top:6px; } summary { cursor:pointer; color:var(--mute); font-size:12px; }
+  .log { font:11px/1.4 Consolas, monospace; color:var(--mute); max-height:220px; overflow:auto; white-space:pre-wrap; margin-top:4px; }
+</style>
+</head>
+<body><div class="wrap">
+<div class="top"><b>AI Build</b><span id="model"></span></div>
+<div id="compose"></div>
+<div id="follow"></div>
+</div>
+<script>
+const MB = {}; let S = null, showAdd = false, reviseOpen = false;
+function call(a, p) { sketchup.mb(a, JSON.stringify(p || {})); }
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function md(s) {
+  let out = [], list = false;
+  for (let l of esc(s).split(/\r?\n/)) {
+    l = l.replace(/`([^`]+)`/g, '<code>$1</code>').replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>');
+    const h = l.match(/^#{1,4}\s+(.*)/), li = l.match(/^\s*[-*]\s+(.*)/);
+    if (li) { if (!list) { out.push('<ul>'); list = true; } out.push('<li>' + li[1] + '</li>'); continue; }
+    if (list) { out.push('</ul>'); list = false; }
+    if (h) out.push('<h3>' + h[1] + '</h3>'); else if (l.trim()) out.push('<p>' + l + '</p>');
+  }
+  if (list) out.push('</ul>'); return out.join('');
+}
+const $ = id => document.getElementById(id);
+function agent() { return (S.agents || []).find(a => a.id === ($('agent') ? $('agent').value : S.agent)); }
+function fields() { return { message: $('msg') ? $('msg').value : S.message, lod: $('lod') ? $('lod').value : S.lod, agent: $('agent') ? $('agent').value : S.agent }; }
+function save() { call('set', fields()); }
+
+MB.render = function (st) {
+  const keepMsg = $('msg') && document.activeElement === $('msg') ? $('msg').value : null;
+  S = st; $('model').textContent = st.model + ' · v' + st.version;
+  const t = st.task, busy = t && ['planning', 'plan_ready', 'building', 'done'].includes(t.status);
+  renderCompose(!busy);
+  if (keepMsg !== null && $('msg')) { $('msg').value = keepMsg; $('msg').focus(); }
+  renderFollow();
+};
+
+function renderCompose(open) {
+  const c = $('compose');
+  if (!open) { c.innerHTML = ''; return; }
+  const marks = S.marks.map(m => `<span class="chip ${m.kind}"><span class="t" title="click to add a note" onclick="call('note',{id:'${m.id}'})">${esc(m.id.toUpperCase())}${m.note ? ' · ' + esc(m.note) : ''}</span><button class="x" title="Delete" onclick="call('delete',{id:'${m.id}'})">✕</button></span>`).join('');
+  const refs = S.refs.map(r => `<span class="chip ref"><span class="t" title="${esc(r.kind)}">${esc(r.id)} · ${esc(r.name)}</span><button class="x" title="Remove" onclick="call('unattach',{id:'${r.id}'})">✕</button></span>`).join('');
+  const opt = a => `<option value="${a.id}" ${a.id === S.agent ? 'selected' : ''}>${a.available ? '' : '○ '}${esc(a.label)}${a.kind === 'api' && a.model ? ' · ' + esc(a.model) : ''}</option>`;
+  const groups = `<optgroup label="Agents on this computer">${S.agents.filter(a => a.kind === 'cli' || a.kind === 'ide').map(opt).join('')}</optgroup>
+                  <optgroup label="Model APIs">${S.agents.filter(a => a.kind === 'api').map(opt).join('')}</optgroup>
+                  <optgroup label="Other">${S.agents.filter(a => a.kind === 'manual').map(opt).join('')}</optgroup>`;
+  c.innerHTML = `
+  <div class="card"><div class="label"><span>Where</span>${S.marks.length ? `<button class="link" onclick="call('clear_marks')">clear</button>` : ''}</div>
+    <div class="chips">${marks || '<span class="hint">Click a point in the model, then click it again for a pin — or click several points and back to the first to outline an area.</span>'}</div>
+    <div style="margin-top:8px"><button onclick="call('mark')">＋ Mark</button></div></div>
+  <div class="card"><div class="label"><span>What</span><select id="lod" onchange="save()">${S.lods.map(l => `<option ${l === S.lod ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
+    <textarea id="msg" placeholder="Describe what to build here…" onchange="save()">${esc(S.message || '')}</textarea>
+    <div class="row" style="margin-top:6px"><button onclick="call('attach')">📎 Attach</button><button onclick="call('attach_selection')" title="Select an imported DWG or a group in the model first">From selection</button></div>
+    ${refs ? `<div class="chips" style="margin-top:6px">${refs}</div>` : ''}</div>
+  <div class="card"><div class="label"><span>Send to</span></div>
+    <div class="sendrow"><select id="agent" onchange="save(); renderAgentNote()">${groups}</select>
+      <button title="Add a model API" onclick="showAdd = !showAdd; renderCompose(true)">＋</button>
+      <button class="primary" onclick="send()">Send</button></div>
+    <div id="agentnote"></div>${showAdd ? addForm() : ''}</div>`;
+  renderAgentNote();
+}
+
+function renderAgentNote() {
+  const a = agent(), n = $('agentnote'); if (!a || !n) return;
+  const hasImg = S.refs.some(r => r.image);
+  let h = '';
+  if (a.kind === 'api') {
+    if (!a.available) h = `<div class="form"><div class="f"><label>API key</label><input type="password" id="newkey" placeholder="${esc(a.env)}"><button onclick="call('save_key',{provider:'${a.id.slice(4)}',key:$('newkey').value})">Save</button></div></div><div class="note hint">Saved as the user environment variable ${esc(a.env)}.</div>`;
+    else h = `<div class="note ${/invalid/.test(a.status || '') ? 'bad' : (a.status === 'valid' ? 'ok' : '')}">Key ${esc(a.env)} ${a.status === 'valid' ? 'valid' : (a.status ? esc(a.status) : 'found')} · <button class="link" onclick="call('test_key',{provider:'${a.id.slice(4)}'})">test</button></div>`;
+    if (hasImg && !a.vision) h += `<div class="note warn">This model cannot see images: it will only read their names. Describe the attached image in the text, or pick a model that sees images.</div>`;
+  } else if (!a.available) h = `<div class="note bad">${esc(a.label)} was not found on this computer.</div>`;
+  else if (a.kind === 'ide') h = `<div class="note hint">Opens in ${esc(a.label)}; the plan and the result come back here.</div>`;
+  else if (a.kind === 'manual') h = `<div class="note hint">Copies the instructions; paste them into any agent.</div>`;
+  n.innerHTML = h;
+}
+
+function addForm() {
+  return `<div class="form" style="margin-top:8px;border-top:1px solid var(--line);padding-top:6px">
+    <div class="f"><label>Name</label><input type="text" id="a_label" placeholder="e.g. Qwen, Kimi, local LLM"></div>
+    <div class="f"><label>Type</label><select id="a_style"><option value="openai">OpenAI-compatible</option><option value="anthropic">Anthropic</option></select></div>
+    <div class="f"><label>Base URL</label><input type="text" id="a_base" placeholder="https://api.example.com/v1"></div>
+    <div class="f"><label>Model</label><input type="text" id="a_model" placeholder="model name"></div>
+    <div class="f"><label>API key</label><input type="password" id="a_key" placeholder="stored as a user environment variable"></div>
+    <div class="f"><label>Key variable</label><input type="text" id="a_env" placeholder="auto: NAME_API_KEY"></div>
+    <div class="f"><label></label><label style="width:auto"><input type="checkbox" id="a_vision"> can see images</label></div>
+    <div class="f"><label></label><button class="primary" onclick="addApi()">Add</button><button onclick="showAdd=false;renderCompose(true)">Cancel</button></div></div>`;
+}
+function addApi() {
+  call('add_api', { label: $('a_label').value, style: $('a_style').value, base: $('a_base').value, model: $('a_model').value,
+                    key: $('a_key').value, env: $('a_env').value, vision: $('a_vision').checked });
+  showAdd = false;
+}
+function send() {
+  const a = agent();
+  if (!S.marks.length && !confirm('No mark placed. Send anyway?')) return;
+  if (!a || !a.available) { alert('Pick an agent or model that is set up.'); return; }
+  if (!$('msg').value.trim()) { alert('Describe what to build.'); return; }
+  call('send', fields());
+}
+
+function renderFollow() {
+  const f = $('follow'), t = S.task;
+  if (!t) { f.innerHTML = ''; return; }
+  const live = ['planning', 'building'].includes(t.status);
+  const stage = { planning: 'Planning', plan_ready: 'Plan ready — your decision', building: 'Building', done: 'Done — review the result',
+                  accepted: 'Accepted', rejected: 'Rejected', cancelled: 'Cancelled', failed: 'Failed' }[t.status] || t.status;
+  const meta = [t.scripts ? t.scripts + ' script(s)' : '', t.created ? t.created + ' object(s)' : '', t.tokens ? t.tokens.toLocaleString() + ' tokens' : '',
+                t.cost ? '$' + t.cost.toFixed(2) : '', live ? t.seconds + ' s' : ''].filter(Boolean).join(' · ');
+  let h = `<div class="card"><div class="status"><span class="dot ${live ? 'live' : (t.status === 'plan_ready' ? 'wait' : (t.status === 'done' || t.status === 'accepted' ? 'done' : ''))}"></span>
+           <b>${esc(stage)}</b></div><div class="step" title="${esc(t.step || '')}">${esc(t.step || '')}</div><div class="hint">${esc(meta)}</div>`;
+  if (live) h += `<div class="actions"><button onclick="call('cancel')">Cancel</button></div>`;
+  h += `</div>`;
+  if (S.plan && ['plan_ready', 'building', 'done', 'accepted', 'rejected'].includes(t.status)) {
+    h += `<div class="card"><div class="label"><span>Plan</span></div><div class="doc md">${md(S.plan)}</div>`;
+    if (t.status === 'plan_ready') {
+      h += `<div class="actions"><button class="ok" onclick="call('approve',{comment:$('rc') ? $('rc').value : ''})">Approve &amp; build</button>
+            <button onclick="reviseOpen=!reviseOpen;renderFollow()">Revise…</button><button onclick="call('cancel')">Cancel</button></div>`;
+      if (reviseOpen) h += `<textarea id="rc" style="margin-top:6px;min-height:60px" placeholder="What should change? (or a comment to send with Approve)"></textarea>
+            <div class="actions"><button onclick="call('revise',{comment:$('rc').value});reviseOpen=false">Send changes</button></div>`;
+    }
+    h += `</div>`;
+  }
+  if (S.report && ['done', 'accepted', 'rejected'].includes(t.status)) {
+    h += `<div class="card"><div class="label"><span>Result</span></div><div class="doc report md">${md(S.report)}</div>`;
+    if (t.status === 'done') h += `<div class="actions">${t.created ? `<button class="ok" onclick="call('accept')">Accept</button><button onclick="call('reject')">Reject (remove ${t.created})</button>` : ''}<button onclick="call('new')">New request</button></div>`;
+    h += `</div>`;
+  }
+  if (['accepted', 'rejected', 'cancelled', 'failed'].includes(t.status)) h += `<div class="actions" style="margin-bottom:8px"><button class="primary" onclick="call('new')">New request</button></div>`;
+  const open = $('det') && $('det').open;
+  h += `<details id="det" ${open ? 'open' : ''}><summary>Details</summary><div class="log">${S.log.map(e => esc(e.t + ' ' + e.role + ': ' + String(e.text).slice(0, 400))).join('\n')}</div>
+        <div class="actions"><button class="link" onclick="call('open_folder')">Open task folder</button></div></details>`;
+  f.innerHTML = h;
+}
+window.onload = () => call('ready');
+</script>
+</body>
+</html>

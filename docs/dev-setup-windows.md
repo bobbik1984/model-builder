@@ -1,6 +1,6 @@
 # Dev setup (Windows)
 
-> Draft. Verify paths and versions on the actual machine and update this file.
+> Section 1 verified 2026-11-08 on the dev machine (SketchUp 2024 24.0.553, repo at `D:\OneDrive\Learning\Code\Gemini\model-builder`). Python/uv sections are still a draft until M1b.
 
 ## Prerequisites
 - **SketchUp** 2024 or newer (Ruby 3.x)
@@ -11,17 +11,21 @@
 - Recommended: VS Code with the Ruby LSP and Python extensions
 
 ## 1. Load the SketchUp extension from the repo (dev loader)
-Don't copy files into Plugins. Instead, put a one-line loader there that points at the repo:
-
-`%APPDATA%\SketchUp\SketchUp 20XX\SketchUp\Plugins\model_builder_dev.rb`
-```ruby
-# Dev loader: points SketchUp at the git checkout
-$LOAD_PATH.unshift('C:/dev/model-builder/hosts/sketchup/src') unless $LOAD_PATH.include?('C:/dev/model-builder/hosts/sketchup/src')
-require 'model_builder'
+Don't copy files into Plugins. Instead, install a small loader that points at the repo:
+```powershell
+powershell -ExecutionPolicy Bypass -File tools\install-dev-loader.ps1     # options: -SketchUpVersion 2024, -Uninstall
 ```
-(This is the only place where a global is acceptable, because the file is dev-only and never shipped.)
+It writes `%APPDATA%\SketchUp\SketchUp 2024\SketchUp\Plugins\model_builder_dev.rb`, which `require`s `hosts/sketchup/src/model_builder.rb` from this checkout. The absolute path is baked in, so re-run the script if the repo moves. No globals are used.
 
-To reload after editing: in **Window → Ruby Console**, run `ModelBuilder.reload` (to be implemented in M1), or restart SketchUp.
+To reload after editing: **Extensions → Model Builder → Dev → Reload Ruby Files**, or `ModelBuilder.reload` in **Window → Ruby Console**. Restart SketchUp for menu/toolbar changes.
+
+Unattended self-test (SketchUp must be closed; it starts, tests, and quits without saving):
+```powershell
+& "C:\Program Files\SketchUp\SketchUp 2024\SketchUp.exe" -RubyStartup "D:\OneDrive\Learning\Code\Gemini\model-builder\hosts\sketchup\dev\autorun_selftest.rb"
+Get-Content "$env:LOCALAPPDATA\ModelBuilder\selftest\autorun_status.txt"
+python tools\check_packet.py
+```
+Set the environment variable `MB_AUTORUN_KEEP_OPEN=1` to keep SketchUp open afterwards. OneDrive note: mark the repo folder "Always keep on this device", or SketchUp may fail to load files that are only online.
 
 ## 2. Run the bridge
 ```powershell
@@ -36,10 +40,9 @@ claude mcp add model-builder -- uv run --directory C:\dev\model-builder\bridge m
 ```
 Claude Code then starts the bridge itself over stdio, so step 2 is only needed for manual testing.
 
-## 4. Smoke test (from M1)
-1. Open `samples/models/` → a test model in SketchUp
-2. Use the ModelBuilder toolbar → Pin tool → click 2–3 faces → "Send to agent"
-3. In Claude Code: *"What are the pins on?"*
+## 4. Smoke test
+- M1a (now): "Manual test M1" in `docs/acceptance/m1a-pins-export.md`.
+- M1b (later): Pin tool → click 2–3 faces → Export (later "Send to agent") → in Claude Code: *"What are the pins on?"*
 
 ## Debugging
 - Ruby errors: the Ruby Console. Errors inside `UI.start_timer` callbacks can be silent, so wrap them and log to `%LOCALAPPDATA%\ModelBuilder\logs\`.

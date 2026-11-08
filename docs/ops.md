@@ -17,6 +17,22 @@ Rules:
 | `measure` | `from: point\|ref`, `to: point\|ref` | M2 |
 | `render_view` | `camera? \| preset (front, top, iso…)`, `style (shaded, hidden_line, xray)`, `section_plane?`, `show_proposal: bool` | M2 |
 
+## Learned from the atrium-roof study (2026-11-08)
+
+`docs/studies/atrium-roof-build.md` built a curved, triangulated roof end to end. What it needed, in addition to the ops below:
+
+| Op | Params | Why |
+|---|---|---|
+| `get_geometry` | `ref`, `path` → loops (outer + holes) in world meters, plane, area | The boundary to build on (90 points) is a face loop, not the user's ~10 clicks |
+| `raycast` | `origin`, `direction`, `ignore_refs[]` → point, path | Clearance and clash checks; camera placement; "what is above/below" |
+| `add_mesh` | `triangles [[p,p,p]…]`, `material`, `parent?`, `name?` | Panels, ceilings, flashing. Planar by construction |
+| `extrude_faces` | `refs[]`, `thickness`, `direction?` | 30 mm panels from the triangles |
+| `sweep_box` | `segments [[a,b]…]`, `width`, `depth`, `top_offset` | Beams along arbitrary 3D lines |
+| `render_view` + `hide_refs[]`, `isolate_refs[]` | | Towers hid the roof; two cameras landed inside solids |
+| `check_proposal` | clearance rays, planarity, solid check | Verification beyond pictures |
+
+Prefer **generators with named parameters** (re-run in seconds) over one-shot geometry: the references give intent, not numbers.
+
 ## Proposal control
 | Op | Params | Phase |
 |---|---|---|
