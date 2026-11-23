@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+dist/
+build/
+
+# SketchUp
+*.skb
+*.rbz
+hosts/sketchup/dist/
+
+# Rhino / Grasshopper
+*.3dmbak
+*.rhl
+*.ghbak
+
+# Runtime output (session packets, screenshots)
+.runtime/
+sessions/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Secrets
+.env
+
+# Local architectural models, CAD drawings, renders & results (never publish)
+samples/*
+!samples/README.md
+!samples/models/
+samples/models/*
+!samples/models/.gitkeep
+!samples/references/
+samples/references/*
+!samples/references/.gitkeep
+*.skp
+*.dwg
+*.dxf
